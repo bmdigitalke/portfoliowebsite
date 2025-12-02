@@ -1,4 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Brian Ireri - Graphic Designer Portfolio
+
+A premium, principle-driven portfolio showcasing graphic design work for churches, events, and brands.
+
+## Environment Setup
+
+1. **Copy the environment template:**
+   ```bash
+   cp .env.example .env.local
+   ```
+
+2. **Add your Cloudinary credentials:**
+   - Get your cloud name from [Cloudinary Console](https://console.cloudinary.com/)
+   - Update `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` in `.env.local`
+
+3. **Upload your poster images to Cloudinary in organized folders:**
+   ```
+   portfolio/
+   ├── Bible Study/
+   │   ├── image-1.jpg
+   │   ├── image-2.jpg
+   │   ├── image-3.jpg
+   │   └── ... (add more images)
+   ├── Real estate/
+   │   ├── image-1.jpg
+   │   ├── image-2.jpg
+   │   ├── image-3.jpg
+   │   └── ... (add more images)
+   ├── Politics/
+   │   ├── image-1.jpg
+   │   ├── image-2.jpg
+   │   ├── image-3.jpg
+   │   └── ... (add more images)
+   ├── SMEs/
+   │   ├── image-1.jpg
+   │   ├── image-2.jpg
+   │   ├── image-3.jpg
+   │   └── ... (add more images)
+   └── placeholder.jpg (optional fallback image)
+   ```
+
+4. **The portfolio will display images from each category:**
+   - Update the `images` array in `app/page.js` with your actual Cloudinary image URLs
+   - Include the full URL with version number and correct file extension
+   - Images are clickable and open in a lightbox modal
+
+5. **Upload your Canva anniversary video:**
+   - Upload the video to Cloudinary in the `portfolio` folder
+   - Name it: `canva-anniversary.mp4`
+   - The video will display in the "Top 1% Worldwide" section
+
+6. **Extras Page:**
+   - Upload additional designs to Cloudinary in the `portfolio/extras` folder
+   - Name them: `image-1`, `image-2`, `image-3`, etc. (up to `image-20`)
+   - Supported formats: `.jpg`, `.png`, `.jpeg`, `.webp`
+   - They will automatically appear on the `/extras` page
+   - No code changes needed!
+
+## Portfolio Categories
+
+Work is organized into 4 main categories:
+
+- **Bible Study** - Visual communication for spiritual growth and church events
+- **Real estate** - Property marketing and real estate campaigns  
+- **Politics** - Civic engagement and community dialogue initiatives
+- **SMEs** - Small business branding and entrepreneurship support
 
 ## Getting Started
 
