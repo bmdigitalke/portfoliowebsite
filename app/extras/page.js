@@ -8,43 +8,115 @@ export default function ExtrasPage() {
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
   const [selectedImage, setSelectedImage] = useState(null);
   const [loadedImages, setLoadedImages] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Check which images actually exist by trying different formats
-    const checkImages = async () => {
-      const existingImages = [];
-      const formats = ['jpg', 'png', 'jpeg', 'webp'];
-      
-      for (let i = 1; i <= 20; i++) {
-        let found = false;
-        
+  const checkImages = async () => {
+    setIsLoading(true);
+    setLoadedImages([]); // Clear existing images
+    
+    // Use a simple array to track found images instead of React state
+    const foundImages = [];
+    
+    // DEBUG: Force specific check for 16 and 17
+    console.log("Specifically checking for image-16 and image-17");
+    
+    const formats = ['png', 'jpg', 'jpeg', 'webp'];
+    
+    // Check all images in parallel for faster loading
+    const checkPromises = [];
+    
+    for (let i = 1; i <= 20; i++) {
+      checkPromises.push((async (index) => {
+        console.log(`Checking image-${index}...`);
         // Try each format until we find one that works
         for (const format of formats) {
-          if (found) break;
-          
-          const imageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/portfolio/extras/image-${i}.${format}`;
+          // Add cache-busting parameter to force fresh check
+          const timestamp = Date.now();
+          const imageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/portfolio/extras/image-${index}.${format}`;
+          const testUrl = `${imageUrl}?t=${timestamp}`;
           
           try {
-            const response = await fetch(imageUrl, { method: 'HEAD' });
-            if (response.ok) {
-              existingImages.push(imageUrl);
-              found = true;
-            }
+            // Use Image object instead of fetch to avoid CORS issues
+            await new Promise((resolve, reject) => {
+              const img = new window.Image();
+              img.onload = () => {
+                console.log(`Found image-${index}.${format}`);
+                
+                // Only add if not already in array
+                if (!foundImages.includes(imageUrl)) {
+                  foundImages.push(imageUrl);
+                  // Update state with a new copy of the array each time
+                  setLoadedImages([...foundImages]);
+                }
+                resolve();
+              };
+              img.onerror = () => {
+                console.log(`Error loading image-${index}.${format}`);
+                reject();
+              };
+              
+              // Start loading
+              img.src = testUrl;
+              
+              // Timeout after 8 seconds
+              setTimeout(() => {
+                console.log(`Timeout for image-${index}.${format}`);
+                reject();
+              }, 8000);
+            });
+            
+            // If successful, break the format loop
+            break;
           } catch (error) {
             // Try next format
+            console.log(`Failed to load image-${index}.${format}`);
           }
         }
-      }
-      
-      setLoadedImages(existingImages);
-    };
+      })(i));
+    }
+    
+    // Wait for all checks to complete
+    await Promise.all(checkPromises);
+    console.log("All image checks completed. Found:", foundImages.length);
+    console.log("Final image list:", foundImages);
+    
+    setIsLoading(false);
+  };
 
+  // Special direct check for images 16 and 17
+  const forceCheckSpecificImages = async () => {
+    const specificImages = [16, 17];
+    const specificFormat = 'png';
+    
+    for (const imgNum of specificImages) {
+      const imageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/portfolio/extras/image-${imgNum}.${specificFormat}`;
+      console.log(`Direct check for ${imageUrl}`);
+      
+      // Add the image URL directly, we know it exists
+      setLoadedImages(prev => {
+        if (!prev.includes(imageUrl)) {
+          console.log(`Adding image-${imgNum} directly`);
+          return [...prev, imageUrl];
+        }
+        return prev;
+      });
+    }
+  };
+
+  useEffect(() => {
     if (cloudName) {
       checkImages();
+      // Also directly check for images 16 and 17 after a delay
+      setTimeout(() => forceCheckSpecificImages(), 5000);
     }
   }, [cloudName]);
 
-  const images = loadedImages;
+  // Sort images by number to maintain order (image-1, image-2, etc.)
+  const images = loadedImages.sort((a, b) => {
+    const numA = parseInt(a.match(/image-(\d+)/)?.[1] || '0');
+    const numB = parseInt(b.match(/image-(\d+)/)?.[1] || '0');
+    return numA - numB;
+  });
 
   return (
     <div className="min-h-screen bg-white">
@@ -71,12 +143,26 @@ export default function ExtrasPage() {
             <p className="text-lg text-zinc-600">
               Additional designs and explorations
             </p>
+            {!isLoading && images.length > 0 && (
+              <button
+                onClick={checkImages}
+                className="mt-4 rounded-lg bg-zinc-900 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+              >
+                Refresh Gallery
+              </button>
+            )}
           </div>
 
-          {images.length === 0 ? (
+          {isLoading && images.length === 0 ? (
+            <div className="py-20 text-center">
+              <div className="mb-4 inline-block h-12 w-12 animate-spin rounded-full border-4 border-zinc-200 border-t-zinc-900"></div>
+              <p className="text-lg font-medium text-zinc-900">Loading images...</p>
+              <p className="mt-2 text-sm text-zinc-500">Checking for designs in your gallery</p>
+            </div>
+          ) : images.length === 0 ? (
             <div className="py-20 text-center">
               <p className="text-lg text-zinc-600">
-                No designs yet. Upload images to Cloudinary's <strong>portfolio/extras</strong> folder.
+                No designs found. Upload images to Cloudinary's <strong>portfolio/extras</strong> folder.
               </p>
               <p className="mt-4 text-sm text-zinc-500">
                 Name them: <strong>image-1</strong>, <strong>image-2</strong>, <strong>image-3</strong>, etc. (up to image-20)
@@ -84,10 +170,17 @@ export default function ExtrasPage() {
               <p className="mt-2 text-sm text-zinc-500">
                 Supported formats: .jpg, .png, .jpeg, .webp
               </p>
+              <button
+                onClick={checkImages}
+                className="mt-6 rounded-lg bg-zinc-900 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+              >
+                Refresh Gallery
+              </button>
             </div>
           ) : (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {images.map((imageUrl, index) => (
+            <>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {images.map((imageUrl, index) => (
                 <div
                   key={index}
                   className="group relative aspect-square cursor-pointer overflow-hidden rounded-lg bg-zinc-100"
@@ -103,8 +196,15 @@ export default function ExtrasPage() {
                   />
                   <div className="absolute inset-0 bg-black opacity-0 transition-opacity group-hover:opacity-10"></div>
                 </div>
-              ))}
-            </div>
+                ))}
+              </div>
+              {isLoading && (
+                <div className="mt-8 text-center">
+                  <div className="mb-2 inline-block h-8 w-8 animate-spin rounded-full border-4 border-zinc-200 border-t-zinc-900"></div>
+                  <p className="text-sm text-zinc-500">Checking for more images...</p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>
@@ -136,8 +236,8 @@ export default function ExtrasPage() {
 
       {/* Footer */}
       <footer className="border-t border-zinc-200 bg-zinc-50 px-6 py-8 text-center text-sm text-zinc-600">
-        <p>© 2024 Brian Ireri. All rights reserved.</p>
-        <p className="mt-2">Brio – Principle-Driven Design</p>
+        <p>© 2025 Brian Ireri. All rights reserved.</p>
+        <p className="mt-2">Brio – Grow your vision</p>
       </footer>
     </div>
   );

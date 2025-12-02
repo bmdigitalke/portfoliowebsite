@@ -182,7 +182,7 @@ export default function Home() {
               <div>
                 <h3 className="mb-3 text-xl font-semibold text-zinc-900">Mission</h3>
                 <p className="leading-relaxed text-zinc-700">
-                  To serve churches, brands, and organizations with design that honors truth, serves people, and elevates messages worth sharing.
+                  To serve brands and organizations with design that honors their vision, serves people, and elevates messages worth sharing.
                 </p>
               </div>
               <div>
@@ -531,8 +531,8 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t border-zinc-800 bg-zinc-900 px-6 py-8 text-center text-sm text-zinc-400">
-        <p>© 2024 Brian Ireri. All rights reserved.</p>
-        <p className="mt-2">Brio – Principle-Driven Design</p>
+        <p>© 2025 Brian Ireri. All rights reserved.</p>
+        <p className="mt-2">Brio – Grow your vision</p>
       </footer>
 
       {/* Image Lightbox Modal */}
